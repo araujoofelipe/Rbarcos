@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+
+
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="fonts/ionicons/css/ionicons.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/ionicons@5.0.0/dist/ionicons.js"></script>
+    <script src="js/axios.min.js"></script>
+</head>
+
+<body>
+
+    <!-- usando vuejs para listar hoteis e quartos -->
+    <div id="app">
+
+        <nav class="topo">
+            <img src="assets/logo-sunset.png" alt="">
+        </nav>
+
+        <div class="container">
+
+            <div class="row mt-3">
+                <div class="col-lg-6">
+                    <h3 class="text-info">Lista de Hotéis </h3>
+                </div>
+                <div class="col-lg-6">
+                    <button class="btn btn-info float-right" @click="showaddhotel=true">
+                        <ion-icon name="add-circle"></ion-icon>&nbsp;&nbsp;Cadastrar Hotel
+                    </button>
+
+                </div>
+            </div>
+            <hr class="bg-info" />
+
+            <!-- mensagem de alerta -->
+            <section>
+                <!-- mensagem de erro -->
+                <div class="alert alert-danger" v-if="msgError">
+                    {{msgError}}
+                </div>
+
+                <!-- Mensagem de sucesso -->
+                <div class="alert alert-success" v-if="msgSuccess">
+                    {{msgSuccess}}
+                </div>
+            </section>
+
+
+            <div class="row">
+                <div class="container-fluid">
+                    <div class="row" v-for="hotel in hoteis" key="hotel.id">
+                        <div class="col-md-12 listing-block">
+                            <div class="media" style="margin-top: 15px;">
+                                <div class="fav-box"><i class="fa fa-heart-o" aria-hidden="true"></i>
+                                </div>
+                                <img class="d-flex align-self-start"
+                                    src="https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?h=350&auto=compress&cs=tinysrgb"
+                                    alt="Generic placeholder image">
+                                <div class="media-body pl-3">
+                                    <div class="price">{{hotel.name}}<small>{{hotel.localizacao}}</small></div>
+                                    <div class="stats">
+                                        <span>
+                                            <ion-icon name="star"></ion-icon>&nbsp;&nbsp;{{hotel.sobre}}
+                                        </span>
+                                        <span>
+                                            <ion-icon name="bed"></ion-icon>&nbsp;<a @click="getAllquartos(hotel.id)"
+                                                data-toggle="collapse" :href="'#collapse'+hotel.id" role="button"
+                                                aria-expanded="false"
+                                                aria-controls="collapseExample">&nbsp;{{qtdquartos}}
+                                                quartos</a>
+                                            &nbsp;&nbsp;&nbsp;<button style="margin-top: -10px;" type="button"
+                                                class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
+                                                @click="pegarid(hotel.id)">
+                                                <ion-icon name="add-circle"></ion-icon>
+
+                                            </button>
+
+                                        </span>
+                                    </div>
+                                    <div class="address">Comodidades: {{hotel.comodidades}}</div>
+
+                                </div>
+
+                            </div>
+                            <div class="" v-if="quartos" v-for="quarto in quartos" style="margin-left: 40px">
+
+                                <div class=" collapse" :id="'collapse'+hotel.id">
+                                    <div class="card card-body">
+                                        <div class="media">
+                                            <div class="fav-box"><i class="fa fa-heart-o" aria-hidden="true"></i>
+                                            </div>
+                                            <img class="d-flex align-self-start"
+                                                src="https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?h=350&auto=compress&cs=tinysrgb"
+                                                alt="Generic placeholder image">
+                                            <div class="media-body pl-3">
+                                                <div class="price">R$ {{quarto.preco}}<small>{{quarto.nome}}</small>
+                                                </div>
+                                                <div class="stats">
+                                                    <span>
+                                                        <ion-icon name="person"></ion-icon>&nbsp;&nbsp;Capacidade:
+                                                        {{quarto.capacidade}}
+                                                    </span>
+                                                    <span>
+                                                        <ion-icon name="bed"></ion-icon>&nbsp;&nbsp;
+                                                        Camas: {{quarto.qtd_camas}}
+
+                                                    </span>
+                                                </div>
+                                                <div class="address">&nbsp;{{quarto.descricao}}</div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                    <!-- Modal para cadastro de hotéis -->
+                    <div id="overlay" v-if="showaddhotel">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Adicionar novo Hotel</h5>
+                                    <button class="close" type="button" @click="showaddhotel=false">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+
+                                </div>
+                                <div class="modal-body p-4">
+                                    <form action="#" method="post" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <input type="text" name="nome" class="form-control form-control-lg"
+                                                placeholder="nome" v-model="newHotel.name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="localização" class="form-control form-control-lg"
+                                                placeholder="localização" v-model="newHotel.localizacao" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="sobre" class="form-control form-control-lg"
+                                                placeholder="sobre" v-model="newHotel.sobre" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="file" ref="fotos" name="fotos"
+                                                class="form-control form-control-lg" placeholder="fotos"
+                                                v-model="newHotel.fotos" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="comodidades" class="form-control form-control-lg"
+                                                placeholder="comodidades" v-model="newHotel.comodidades" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-info btn-block btn-lg"
+                                                @click="showaddhotel=false;addHotel()">Cadastrar Hotel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- end modal -->
+
+                    <!-- Modal para cadastro de Quartos -->
+                    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Cadastro de Quartos</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="modal-body p-4">
+                                        <form action="#" method="post" enctype="multipart/form-data">
+                                            <!-- <input type="hidden" name="id_hotel" :value="id_hotel" /> -->
+                                            <div class="form-group">
+                                                <input type="text" name="nome" class="form-control form-control-lg"
+                                                    placeholder="nome" v-model="newQuarto.nome" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="descricao" class="form-control form-control-lg"
+                                                    placeholder="descricao" v-model="newQuarto.descricao" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="preco" class="form-control form-control-lg"
+                                                    placeholder="preco" v-model="newQuarto.preco" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="capacidade"
+                                                    class="form-control form-control-lg" placeholder="capacidade"
+                                                    v-model="newQuarto.capacidade" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="qtd_camas" class="form-control form-control-lg"
+                                                    placeholder="quantidade de camas" v-model="newQuarto.qtd_camas"
+                                                    required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="file" ref="fotos" name="fotos"
+                                                    class="form-control form-control-lg" placeholder="fotos"
+                                                    v-model="newQuarto.fotos" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <button class="btn btn-info btn-block btn-lg" data-dismiss="modal"
+                                                    @click="addQuarto(id_hotel)">Cadastrar
+                                                    Quarto</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+            </div>
+        </div>
+        <!-- <script>
+        alert("teste"+)
+    </script> -->
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/vue.js"></script>
+        <script src="js/main.js"></script>
+
+
+
+
+
+</body>
+
+</html>
